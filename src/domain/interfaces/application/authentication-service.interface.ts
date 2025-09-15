@@ -1,0 +1,7 @@
+import { AuthenticationRecord } from "~/domain/records/authentication.record";
+
+export abstract class AuthenticationServiceInterface {
+  execute: (
+    currentAuthentication?: AuthenticationRecord
+  ) => Promise<AuthenticationRecord>;
+}
