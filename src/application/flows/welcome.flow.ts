@@ -7,7 +7,7 @@ import { PatientEntity } from "~/domain/entities/patient.entity";
 import { reset, start } from "./idle-custom.flow";
 import { AppointmentEntity } from "~/domain/entities/appointment.entity";
 
-export const welcomeFlow = addKeyword<Provider, Database>(EVENTS.WELCOME)
+const welcomeFlow = addKeyword<Provider, Database>(EVENTS.WELCOME)
   .addAction(async (ctx, { gotoFlow }) => start(ctx, gotoFlow, WAITING_TIME))
   .addAnswer(
     [
@@ -21,53 +21,55 @@ export const welcomeFlow = addKeyword<Provider, Database>(EVENTS.WELCOME)
 
       const patient = PatientEntity.create(ctx.body);
 
+      await flowDynamic(patient.messageToRequestDocumentType());
+
       await state.update({ patient });
 
-      // await flowDynamic(patient.messageToRequestDocumentType());
+      return gotoFlow(welcomeFlowDocumentType);
     }
-  )
-  .addAction(async (ctx, { flowDynamic }) => {
-    const patient = PatientEntity.create(ctx.body);
+  );
 
-    await flowDynamic(patient.messageToRequestDocumentType());
-  })
-  .addAction(
-    { capture: true },
-    async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
-      reset(ctx, gotoFlow, WAITING_TIME);
+const welcomeFlowDocumentType = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
+  { capture: true },
+  async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+    reset(ctx, gotoFlow, WAITING_TIME);
 
-      const patient = state.get<PatientEntity>("patient");
+    const patient = state.get<PatientEntity>("patient");
 
-      const message = patient.assignDocumentType(ctx.body.trim());
+    const message = patient.assignDocumentType(ctx.body.trim());
 
-      if (message) return fallBack(message);
+    if (message) return fallBack(message);
 
-      // await state.update({ patient });
+    await flowDynamic(patient.messageToRequestDocumentNumber());
 
-      await flowDynamic(patient.messageToRequestDocumentNumber());
-    }
-  )
-  .addAction(
-    { capture: true },
-    async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
-      reset(ctx, gotoFlow, WAITING_TIME);
+    return gotoFlow(welcomeFlowDocumentNumber);
+  }
+);
 
-      const patient = state.get<PatientEntity>("patient");
+const welcomeFlowDocumentNumber = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
+  { capture: true },
+  async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+    reset(ctx, gotoFlow, WAITING_TIME);
 
-      const message = patient.assignDocumentNumber(ctx.body.trim());
+    const patient = state.get<PatientEntity>("patient");
 
-      if (message) return fallBack(message);
+    const message = patient.assignDocumentNumber(ctx.body.trim());
 
-      // await state.update({ patient });
+    if (message) return fallBack(message);
 
-      const appointment = AppointmentEntity.create(patient);
+    const appointment = AppointmentEntity.create(patient);
 
-      await state.update({ appointment });
+    await state.update({ appointment });
 
-      await flowDynamic(appointment.showOptionsMessage());
-    }
-  )
-  .addAction({ capture: true }, async (ctx, { state, gotoFlow, fallBack }) => {
+    await flowDynamic(appointment.showOptionsMessage());
+
+    return gotoFlow(welcomeFlowMenuOption);
+  }
+);
+
+const welcomeFlowMenuOption = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
+  { capture: true },
+  async (ctx, { state, gotoFlow, fallBack }) => {
     reset(ctx, gotoFlow, WAITING_TIME);
 
     const appointment = state.get<AppointmentEntity>("appointment");
@@ -85,4 +87,12 @@ export const welcomeFlow = addKeyword<Provider, Database>(EVENTS.WELCOME)
     ];
 
     return gotoFlow(flows[Number(ctx.body.trim()) - 1]);
-  });
+  }
+);
+
+export const welcomeFlows = [
+  welcomeFlow,
+  welcomeFlowDocumentType,
+  welcomeFlowDocumentNumber,
+  welcomeFlowMenuOption,
+];
