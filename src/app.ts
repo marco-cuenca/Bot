@@ -1,9 +1,14 @@
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
 import { createBot, createProvider, createFlow } from "@builderbot/bot";
 import { MysqlAdapter as Database } from "@builderbot/database-mysql";
-import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import { idleFlow } from "./application/flows/idle-custom.flow";
 import { welcomeFlows } from "./application/flows/welcome.flow";
 import { schedulerFlows } from "./application/flows/scheduler.flow";
+// import { MetaProvider as Provider } from "@builderbot/provider-meta";
+import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 
 const PORT = process.env.PORT ?? 3011;
 
@@ -15,6 +20,13 @@ const main = async () => {
   ]);
 
   const adapterProvider = createProvider(Provider);
+
+  // const adapterProvider = createProvider(Provider, {
+  //   jwtToken: process.env.JWT_TOKEN,
+  //   numberId: process.env.NUMBER_ID,
+  //   verifyToken: "chatbot-ci",
+  //   version: "v22.0",
+  // });
 
   const MYSQL_DB_HOST = "localhost";
   const MYSQL_DB_USER = "root";

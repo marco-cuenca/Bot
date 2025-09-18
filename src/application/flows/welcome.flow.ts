@@ -1,5 +1,6 @@
 import { addKeyword, EVENTS } from "@builderbot/bot";
 import { MysqlAdapter as Database } from "@builderbot/database-mysql";
+// import { MetaProvider as Provider } from '@builderbot/provider-meta';
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import { schedulerFlow } from "./scheduler.flow";
 import { WAITING_TIME } from "~/domain/constants/domain.constant";
@@ -29,7 +30,9 @@ const welcomeFlow = addKeyword<Provider, Database>(EVENTS.WELCOME)
     }
   );
 
-const welcomeFlowDocumentType = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
+const welcomeFlowDocumentType = addKeyword<Provider, Database>(
+  EVENTS.ACTION
+).addAction(
   { capture: true },
   async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
     reset(ctx, gotoFlow, WAITING_TIME);
@@ -46,7 +49,9 @@ const welcomeFlowDocumentType = addKeyword<Provider, Database>(EVENTS.ACTION).ad
   }
 );
 
-const welcomeFlowDocumentNumber = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
+const welcomeFlowDocumentNumber = addKeyword<Provider, Database>(
+  EVENTS.ACTION
+).addAction(
   { capture: true },
   async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
     reset(ctx, gotoFlow, WAITING_TIME);
@@ -61,38 +66,51 @@ const welcomeFlowDocumentNumber = addKeyword<Provider, Database>(EVENTS.ACTION).
 
     await state.update({ appointment });
 
+    // await flowDynamic(appointment.showOptionsMessage());
+
+    return gotoFlow(welcomeFlowMenuOptionMessage);
+  }
+);
+
+export const welcomeFlowMenuOptionMessage = addKeyword<Provider, Database>(
+  EVENTS.ACTION
+).addAction(
+  async (_, { flowDynamic, gotoFlow, state }) => {
+
+    const appointment = state.get<AppointmentEntity>("appointment");
+
     await flowDynamic(appointment.showOptionsMessage());
 
     return gotoFlow(welcomeFlowMenuOption);
   }
 );
 
-const welcomeFlowMenuOption = addKeyword<Provider, Database>(EVENTS.ACTION).addAction(
-  { capture: true },
-  async (ctx, { state, gotoFlow, fallBack }) => {
-    reset(ctx, gotoFlow, WAITING_TIME);
+const welcomeFlowMenuOption = addKeyword<Provider, Database>(
+  EVENTS.ACTION
+).addAction({ capture: true }, async (ctx, { state, gotoFlow, fallBack }) => {
+  reset(ctx, gotoFlow, WAITING_TIME);
 
-    const appointment = state.get<AppointmentEntity>("appointment");
+  const appointment = state.get<AppointmentEntity>("appointment");
 
-    const message = appointment.assignOption(ctx.body.trim());
+  const message = appointment.assignOption(ctx.body.trim());
 
-    if (message) return fallBack(message);
+  if (message) return fallBack(message);
 
-    const flows = [
-      schedulerFlow,
-      schedulerFlow,
-      schedulerFlow,
-      schedulerFlow,
-      schedulerFlow,
-    ];
+  const flows = [
+    schedulerFlow,
+    schedulerFlow,
+    schedulerFlow,
+    schedulerFlow,
+    schedulerFlow,
+  ];
 
-    return gotoFlow(flows[Number(ctx.body.trim()) - 1]);
-  }
-);
+  return gotoFlow(flows[Number(ctx.body.trim()) - 1]);
+});
 
 export const welcomeFlows = [
   welcomeFlow,
   welcomeFlowDocumentType,
   welcomeFlowDocumentNumber,
+  welcomeFlowMenuOptionMessage,
   welcomeFlowMenuOption,
 ];

@@ -1,4 +1,4 @@
-import { DOCUMENT_TYPE } from "../constants/domain.constant";
+import { DOCUMENT_TYPE, GENERIC_ERROR_MESSAGE } from "../constants/domain.constant";
 import { DocumentTypeEnum } from "../enumerations/document-type.enum";
 
 export class PatientEntity {
@@ -10,6 +10,10 @@ export class PatientEntity {
     name: string;
     length: number;
   };
+  private fullName: string;
+  private prmIdentifier: string;
+  private medicalHistoryNumber: string;
+  private patientCode: string;
 
   constructor(name: string, documentType?: string, documentNumber?: string) {
     this.name = name;
@@ -19,6 +23,15 @@ export class PatientEntity {
 
   static create(name: string) {
     return new PatientEntity(name.trim());
+  }
+
+  update(data: Partial<{
+    fullName: string,
+    prmIdentifier: string,
+    medicalHistoryNumber: string,
+    patientCode: string
+  }>) {
+    Object.assign(this, data);
   }
 
   messageToRequestDocumentType() {
@@ -39,7 +52,7 @@ export class PatientEntity {
 
     if (!documentType)
       return [
-        "No hemos logrado entender la información. Indícanos nuevamente por favor \n",
+        GENERIC_ERROR_MESSAGE,
         ...Object.values(DOCUMENT_TYPE).map((row) => `${row.option}: ${row.name}`),
       ].join("\n");
 
@@ -94,8 +107,12 @@ export class PatientEntity {
   toPrimitives() {
     return {
       name: this.name,
+      fullName: this.fullName,
       documentNumber: this.documentNumber,
       documentType: this.documentType,
+      prmIdentifier: this.prmIdentifier,
+      medicalHistoryNumber: this.medicalHistoryNumber,
+      patientCode: this.patientCode,
     };
   }
 }

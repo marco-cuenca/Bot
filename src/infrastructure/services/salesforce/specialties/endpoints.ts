@@ -1,18 +1,34 @@
-// import { BASE_SALESFORCE } from "../../../shared/domain/constants/domain.constant";
-// import { RecordsSpecialtiesPayload } from "../domain/payloads/records-specialties.payload";
-// const base = BASE_SALESFORCE;
+import { CHANNEL } from "~/domain/constants/domain.constant";
+import { RecordsSpecialtyPayload } from "~/domain/payloads/records-specialty.payload";
 
-// export const Endpoints = {
-//   getSpecialties: (payload: RecordsSpecialtiesPayload, token: string): any => ({
-//     url: `/services/apexrest/portalGetEspecialidades`,
-//     method: "post",
-//     headers: {
-//       "Authorization": `Bearer ${token}`,
-//     },
-//     data: {
-//       Visible: payload.is_visible,
-//       CodSede: payload.establishment_code,
-//       TipoVisita: payload.modality,
-//     },
-//   }),
-// };
+export const Endpoints = {
+  getSpecialties: (payload: RecordsSpecialtyPayload, token: string): any => ({
+    url: `/services/apexrest/CIServices/skills`,
+    method: "post",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: {
+      channel: CHANNEL,
+      searchType: payload.searchType,
+      data: {
+        valueType: payload.valueType,
+        searchValue: payload.searchValue,
+        ...(payload.additionalFilters && {
+          additionalFilters: {
+            ...(payload.additionalFilters.visitType && {
+              visitType: payload.additionalFilters.visitType,
+            }),
+            ...(payload.additionalFilters.serviceType && {
+              serviceType: payload.additionalFilters.serviceType,
+            }),
+            ...(payload.additionalFilters.isMundoCI != undefined &&
+              payload.additionalFilters.isMundoCI != null && {
+                isMundoCI: payload.additionalFilters.isMundoCI,
+              }),
+          },
+        }),
+      },
+    },
+  }),
+};

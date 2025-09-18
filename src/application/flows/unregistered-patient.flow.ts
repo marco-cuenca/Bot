@@ -1,6 +1,7 @@
 import { addKeyword, EVENTS } from '@builderbot/bot'
 import { MysqlAdapter as Database } from '@builderbot/database-mysql'
-import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
+// import { MetaProvider as Provider } from '@builderbot/provider-meta';
+import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 
 export const unregisteredPatientFlow = addKeyword<Provider, Database>(EVENTS.ACTION)
     .addAnswer(
